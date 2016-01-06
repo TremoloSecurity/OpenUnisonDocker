@@ -82,6 +82,33 @@
         <scope>-1</scope>
       </cookieConfig>
     </application>
+    <!-- Uncomment this block for web services -->
+    <!--
+    <application name="WebServices">
+    <urls>
+      <url regex="false" authChain="sslCert">
+        <host>#[OPENUNISON_HOST]</host>
+        <filterChain />
+        <uri>/services</uri>
+        <results />
+        <azRules>
+          <rule scope="dn" constraint="ou=CertAuth,o=Tremolo" />
+        </azRules>
+      </url>
+    </urls>
+    <cookieConfig>
+      <sessionCookieName>tremoloWSSession</sessionCookieName>
+      <domain>#[OPENUNISON_HOST]</domain>
+      <scope>-1</scope>
+      <logoutURI>/logout</logoutURI>
+      <keyAlias>session-wssession</keyAlias>
+      <keyPassword>
+      </keyPassword>
+      <secure>true</secure>
+      <timeout>900</timeout>
+    </cookieConfig>
+    </application>
+  -->
   </applications>
   <myvdConfig>/etc/openunison/myvd.conf</myvdConfig>
   <authMechs>
@@ -106,6 +133,19 @@
       <params>
       </params>
     </mechanism>
+    <mechanism name="certAuth">
+      <uri>/auth/ssl</uri>
+      <className>com.tremolosecurity.proxy.auth.CertAuth</className>
+      <init>
+        <!-- Comma seperated list of CRLs to check -->
+        <param name="crl.names" value=""/>
+        <!-- Extracts can be used to get attributes out of a certificate besides the subject dn and subject alternative names -->
+        <!-- Must implement com.tremolosecurity.proxy.auth.CertificateExtractSubjectAttribute, may be listed multiple times -->
+        <param name="extracts" value="" />
+      </init>
+      <params>
+      </params>
+    </mechanism>
   </authMechs>
   <authChains>
     <!-- An anonymous authentication chain MUST be level 0 -->
@@ -117,7 +157,7 @@
         </params>
       </authMech>
     </chain>
-    <chain name="formloginFilter" level="1">
+    <chain name="formloginFilter" level="20">
       <authMech>
         <name>loginForm</name>
         <required>required</required>
@@ -131,6 +171,23 @@
         </params>
       </authMech>
     </chain>
+    <!-- Uncomment to support web services -->
+    <!--
+    <chain name="certClientAuth" level="40">
+      <authMech>
+        <name>certAuth</name>
+        <required>required</required>
+        <params>
+          <param name="uidAttr" value="(uid=${CN})" />
+          <param name="uidIsFilter" value="true"/>
+          <param name="rdnAttribute" value="CN" />
+          <param name="defaultOC" value="inetOrgPerson" />
+          <param name="dnLabel" value="ou=CertAuth"/>
+          <param name="issuer" value="OU=Dev, O=Tremolo Security Inc., C=US, ST=Virginia, CN=Root CA"/>
+        </params>
+      </authMech>
+    </chain>
+  -->
   </authChains>
   <resultGroups>
     <!-- The name attribute is how the resultGroup is referenced in the URL -->
@@ -145,7 +202,6 @@
         <value>/auth/forms/logout.jsp</value>
       </result>
     </resultGroup>
-
     <!-- The name attribute is how the resultGroup is referenced in the URL -->
     <resultGroup name="Invalid Login">
       <!-- Each result should be listed -->
